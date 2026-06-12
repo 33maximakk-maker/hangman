@@ -1,0 +1,80 @@
+const hangmanPics: string[] = [
+    `  +---+\n      |\n      |\n      |\n      |\n      |\n=========`,
+    // ... (остальные стадии)
+];
+
+interface WordDict {
+    [key: string]: string[];
+}
+
+const words: WordDict = {
+    animals: ["python", "elephant", "giraffe", "tiger", "zebra"],
+    tech: ["computer", "keyboard", "monitor"],
+    programming: ["javascript", "rust", "golang", "java"]
+};
+
+class HangmanGame {
+    private currentWord: string;
+    private guessed: Set<string>;
+    private attempts: number;
+    private readonly maxAttempts: number;
+
+    constructor() {
+        this.maxAttempts = hangmanPics.length - 1;
+        this.newGame();
+    }
+
+    private getRandomWord(): string {
+        const all: string[] = [];
+        for (const key in words) {
+            all.push(...words[key]);
+        }
+        return all[Math.floor(Math.random() * all.length)];
+    }
+
+    newGame(): void {
+        this.currentWord = this.getRandomWord();
+        this.guessed = new Set();
+        this.attempts = 0;
+        this.updateUI();
+    }
+
+    guess(letter: string): void {
+        if (this.attempts >= this.maxAttempts) return;
+        if (!letter.match(/[a-z]/)) return;
+        if (this.guessed.has(letter)) return;
+        this.guessed.add(letter);
+        if (!this.currentWord.includes(letter)) {
+            this.attempts++;
+        }
+        this.updateUI();
+        if (this.isWin()) alert(`You win! Word: ${this.currentWord}`);
+        else if (this.isLoss()) alert(`You lost! Word: ${this.currentWord}`);
+        if (this.isWin() || this.isLoss()) this.newGame();
+    }
+
+    private isWin(): boolean {
+        return Array.from(this.currentWord).every(ch => this.guessed.has(ch));
+    }
+    private isLoss(): boolean {
+        return this.attempts >= this.maxAttempts;
+    }
+
+    private updateUI(): void {
+        const hangmanEl = document.getElementById("hangmanPic")!;
+        const wordEl = document.getElementById("wordDisplay")!;
+        const guessedEl = document.getElementById("guessedLetters")!;
+        const attemptsEl = document.getElementById("attemptsLeft")!;
+        hangmanEl.innerText = hangmanPics[this.attempts];
+        let display = "";
+        for (let ch of this.currentWord) {
+            display += (this.guessed.has(ch) ? ch : "_") + " ";
+        }
+        wordEl.innerText = display.trim();
+        guessedEl.innerText = Array.from(this.guessed).sort().join(", ");
+        attemptsEl.innerText = (this.maxAttempts - this.attempts).toString();
+    }
+}
+
+const game = new HangmanGame();
+// подключить события так же, как в JS-версии
