@@ -1,0 +1,91 @@
+import java.util.*;
+
+public class Hangman {
+    private static final String[] HANGMAN_PICS = {
+        "\n  +---+\n      |\n      |\n      |\n      |\n      |\n=========",
+        "\n  +---+\n  |   |\n  O   |\n      |\n      |\n      |\n=========",
+        "\n  +---+\n  |   |\n  O   |\n  |   |\n      |\n      |\n=========",
+        "\n  +---+\n  |   |\n  O   |\n /|   |\n      |\n      |\n=========",
+        "\n  +---+\n  |   |\n  O   |\n /|\\  |\n      |\n      |\n=========",
+        "\n  +---+\n  |   |\n  O   |\n /|\\  |\n /    |\n      |\n=========",
+        "\n  +---+\n  |   |\n  O   |\n /|\\  |\n / \\  |\n      |\n========="
+    };
+    private static final Map<String, List<String>> WORDS = new HashMap<>();
+    static {
+        WORDS.put("animals", Arrays.asList("python", "elephant", "giraffe", "tiger", "zebra"));
+        WORDS.put("tech", Arrays.asList("computer", "keyboard", "monitor", "algorithm"));
+        WORDS.put("programming", Arrays.asList("java", "python", "javascript", "rust", "golang"));
+    }
+    private static Random rand = new Random();
+
+    private static String getRandomWord(String category) {
+        if (WORDS.containsKey(category)) {
+            List<String> list = WORDS.get(category);
+            return list.get(rand.nextInt(list.size()));
+        }
+        List<String> all = new ArrayList<>();
+        for (List<String> lst : WORDS.values()) all.addAll(lst);
+        return all.get(rand.nextInt(all.size()));
+    }
+
+    private static void displayWord(String word, Set<Character> guessed) {
+        for (char c : word.toCharArray()) {
+            if (guessed.contains(c)) System.out.print(c + " ");
+            else System.out.print("_ ");
+        }
+        System.out.println();
+    }
+
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("Welcome to Hangman!");
+        System.out.print("Choose category (animals/tech/programming) or Enter for random: ");
+        String category = scanner.nextLine().toLowerCase();
+        String word = getRandomWord(category);
+        Set<Character> guessed = new HashSet<>();
+        int attempts = 0;
+        int maxAttempts = HANGMAN_PICS.length - 1;
+
+        while (attempts < maxAttempts) {
+            System.out.println(HANGMAN_PICS[attempts]);
+            displayWord(word, guessed);
+            System.out.print("Guessed letters: ");
+            for (char g : guessed) System.out.print(g + " ");
+            System.out.println();
+            System.out.println("Attempts left: " + (maxAttempts - attempts));
+            System.out.print("Guess a letter: ");
+            String input = scanner.nextLine().toLowerCase();
+            if (input.length() != 1 || !Character.isLetter(input.charAt(0))) {
+                System.out.println("Invalid input.");
+                continue;
+            }
+            char guess = input.charAt(0);
+            if (guessed.contains(guess)) {
+                System.out.println("Already guessed.");
+                continue;
+            }
+            guessed.add(guess);
+            if (word.indexOf(guess) != -1) {
+                System.out.println("Good guess!");
+                boolean won = true;
+                for (char c : word.toCharArray()) {
+                    if (!guessed.contains(c)) { won = false; break; }
+                }
+                if (won) {
+                    System.out.println(HANGMAN_PICS[attempts]);
+                    displayWord(word, guessed);
+                    System.out.println("Congratulations! You guessed the word: " + word);
+                    break;
+                }
+            } else {
+                attempts++;
+                System.out.println("Wrong guess!");
+                if (attempts == maxAttempts) {
+                    System.out.println(HANGMAN_PICS[attempts]);
+                    System.out.println("You lost! The word was: " + word);
+                }
+            }
+        }
+        scanner.close();
+    }
+}
