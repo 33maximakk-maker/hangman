@@ -1,0 +1,143 @@
+
+**`python/hangman.py`**
+
+```python
+import random
+import os
+
+# ASCII stages for hangman
+HANGMAN_PICS = [
+    '''
+      +---+
+          |
+          |
+          |
+          |
+          |
+    =========''',
+    '''
+      +---+
+      |   |
+      O   |
+          |
+          |
+          |
+    =========''',
+    '''
+      +---+
+      |   |
+      O   |
+      |   |
+          |
+          |
+    =========''',
+    '''
+      +---+
+      |   |
+      O   |
+     /|   |
+          |
+          |
+    =========''',
+    '''
+      +---+
+      |   |
+      O   |
+     /|\\  |
+          |
+          |
+    =========''',
+    '''
+      +---+
+      |   |
+      O   |
+     /|\\  |
+     /    |
+          |
+    =========''',
+    '''
+      +---+
+      |   |
+      O   |
+     /|\\  |
+     / \\  |
+          |
+    ========='''
+]
+
+WORDS = {
+    "animals": ["python", "elephant", "giraffe", "tiger", "zebra", "kangaroo"],
+    "tech": ["computer", "keyboard", "monitor", "algorithm", "function", "variable"],
+    "programming": ["python", "javascript", "rust", "golang", "java", "typescript"]
+}
+
+def get_random_word(category=None):
+    if category and category in WORDS:
+        return random.choice(WORDS[category])
+    # choose random category
+    all_words = []
+    for cat in WORDS:
+        all_words.extend(WORDS[cat])
+    return random.choice(all_words)
+
+def display_hangman(attempts):
+    print(HANGMAN_PICS[attempts])
+
+def display_word(word, guessed):
+    display = ""
+    for letter in word:
+        if letter in guessed:
+            display += letter + " "
+        else:
+            display += "_ "
+    print(display.strip())
+
+def play():
+    os.system('cls' if os.name == 'nt' else 'clear')
+    print("Welcome to Hangman!")
+    category = input("Choose category (animals/tech/programming) or press Enter for random: ").strip().lower()
+    word = get_random_word(category if category in WORDS else None)
+    guessed = set()
+    attempts = 0
+    max_attempts = len(HANGMAN_PICS) - 1
+    score = 0
+
+    while attempts < max_attempts:
+        display_hangman(attempts)
+        display_word(word, guessed)
+        print(f"Guessed letters: {', '.join(sorted(guessed)) if guessed else 'None'}")
+        print(f"Attempts left: {max_attempts - attempts}")
+        guess = input("Guess a letter: ").strip().lower()
+
+        if not guess.isalpha() or len(guess) != 1:
+            print("Please enter a single letter.")
+            continue
+        if guess in guessed:
+            print("You already guessed that letter.")
+            continue
+
+        guessed.add(guess)
+        if guess in word:
+            print("Good guess!")
+            if all(letter in guessed for letter in word):
+                display_hangman(attempts)
+                display_word(word, guessed)
+                print(f"Congratulations! You guessed the word: {word}")
+                score += 1
+                break
+        else:
+            attempts += 1
+            print("Wrong guess!")
+    else:
+        display_hangman(attempts)
+        print(f"You lost! The word was: {word}")
+
+    print(f"Your score: {score}")
+    again = input("Play again? (y/n): ").strip().lower()
+    if again == 'y':
+        play()
+    else:
+        print("Thanks for playing!")
+
+if __name__ == "__main__":
+    play()
