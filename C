@@ -1,0 +1,146 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
+class Hangman
+{
+    static string[] hangmanPics = {
+        @"
+  +---+
+      |
+      |
+      |
+      |
+      |
+=========",
+        @"
+  +---+
+  |   |
+  O   |
+      |
+      |
+      |
+=========",
+        @"
+  +---+
+  |   |
+  O   |
+  |   |
+      |
+      |
+=========",
+        @"
+  +---+
+  |   |
+  O   |
+ /|   |
+      |
+      |
+=========",
+        @"
+  +---+
+  |   |
+  O   |
+ /|\  |
+      |
+      |
+=========",
+        @"
+  +---+
+  |   |
+  O   |
+ /|\  |
+ /    |
+      |
+=========",
+        @"
+  +---+
+  |   |
+  O   |
+ /|\  |
+ / \  |
+      |
+========="
+    };
+
+    static Dictionary<string, List<string>> words = new Dictionary<string, List<string>>
+    {
+        ["animals"] = new List<string>{"python", "elephant", "giraffe", "tiger", "zebra"},
+        ["tech"] = new List<string>{"computer", "keyboard", "monitor", "algorithm"},
+        ["programming"] = new List<string>{"python", "javascript", "rust", "golang", "java"}
+    };
+
+    static Random rand = new Random();
+
+    static string GetRandomWord(string category)
+    {
+        if (words.ContainsKey(category))
+            return words[category][rand.Next(words[category].Count)];
+        var all = words.Values.SelectMany(x => x).ToList();
+        return all[rand.Next(all.Count)];
+    }
+
+    static void DisplayWord(string word, HashSet<char> guessed)
+    {
+        foreach (char c in word)
+        {
+            if (guessed.Contains(c)) Console.Write(c + " ");
+            else Console.Write("_ ");
+        }
+        Console.WriteLine();
+    }
+
+    static void Main()
+    {
+        Console.WriteLine("Welcome to Hangman!");
+        Console.Write("Choose category (animals/tech/programming) or Enter for random: ");
+        string category = Console.ReadLine().ToLower();
+        string word = GetRandomWord(category);
+        var guessed = new HashSet<char>();
+        int attempts = 0;
+        int maxAttempts = hangmanPics.Length - 1;
+
+        while (attempts < maxAttempts)
+        {
+            Console.WriteLine(hangmanPics[attempts]);
+            DisplayWord(word, guessed);
+            Console.WriteLine($"Guessed letters: {string.Join(", ", guessed)}");
+            Console.WriteLine($"Attempts left: {maxAttempts - attempts}");
+            Console.Write("Guess a letter: ");
+            string input = Console.ReadLine().ToLower();
+            if (input.Length != 1 || !char.IsLetter(input[0]))
+            {
+                Console.WriteLine("Invalid input.");
+                continue;
+            }
+            char guess = input[0];
+            if (guessed.Contains(guess))
+            {
+                Console.WriteLine("Already guessed.");
+                continue;
+            }
+            guessed.Add(guess);
+            if (word.Contains(guess))
+            {
+                Console.WriteLine("Good guess!");
+                if (word.All(c => guessed.Contains(c)))
+                {
+                    Console.WriteLine(hangmanPics[attempts]);
+                    DisplayWord(word, guessed);
+                    Console.WriteLine($"Congratulations! You guessed the word: {word}");
+                    break;
+                }
+            }
+            else
+            {
+                attempts++;
+                Console.WriteLine("Wrong guess!");
+                if (attempts == maxAttempts)
+                {
+                    Console.WriteLine(hangmanPics[attempts]);
+                    Console.WriteLine($"You lost! The word was: {word}");
+                }
+            }
+        }
+    }
+}
