@@ -1,0 +1,78 @@
+use std::io::{self, Write};
+use rand::Rng;
+
+const HANGMAN_PICS: [&str; 7] = [
+    "\n  +---+\n      |\n      |\n      |\n      |\n      |\n=========",
+    "\n  +---+\n  |   |\n  O   |\n      |\n      |\n      |\n=========",
+    "\n  +---+\n  |   |\n  O   |\n  |   |\n      |\n      |\n=========",
+    "\n  +---+\n  |   |\n  O   |\n /|   |\n      |\n      |\n=========",
+    "\n  +---+\n  |   |\n  O   |\n /|\\  |\n      |\n      |\n=========",
+    "\n  +---+\n  |   |\n  O   |\n /|\\  |\n /    |\n      |\n=========",
+    "\n  +---+\n  |   |\n  O   |\n /|\\  |\n / \\  |\n      |\n=========",
+];
+
+fn get_random_word() -> &'static str {
+    let words = vec!["python", "elephant", "giraffe", "tiger", "zebra", "computer", "keyboard", "algorithm", "javascript", "rust"];
+    let idx = rand::thread_rng().gen_range(0..words.len());
+    words[idx]
+}
+
+fn display_word(word: &str, guessed: &[char]) {
+    for ch in word.chars() {
+        if guessed.contains(&ch) {
+            print!("{} ", ch);
+        } else {
+            print!("_ ");
+        }
+    }
+    println!();
+}
+
+fn main() {
+    let word = get_random_word();
+    let mut guessed: Vec<char> = Vec::new();
+    let mut attempts = 0;
+    let max_attempts = HANGMAN_PICS.len() - 1;
+
+    println!("Welcome to Hangman!");
+    loop {
+        println!("{}", HANGMAN_PICS[attempts]);
+        display_word(word, &guessed);
+        print!("Guessed letters: ");
+        for g in &guessed { print!("{} ", g); }
+        println!();
+        println!("Attempts left: {}", max_attempts - attempts);
+        print!("Guess a letter: ");
+        io::stdout().flush().unwrap();
+        let mut input = String::new();
+        io::stdin().read_line(&mut input).unwrap();
+        let guess = input.trim().to_lowercase();
+        if guess.len() != 1 || !guess.chars().next().unwrap().is_ascii_alphabetic() {
+            println!("Invalid input.");
+            continue;
+        }
+        let ch = guess.chars().next().unwrap();
+        if guessed.contains(&ch) {
+            println!("Already guessed.");
+            continue;
+        }
+        guessed.push(ch);
+        if word.contains(ch) {
+            println!("Good guess!");
+            if word.chars().all(|c| guessed.contains(&c)) {
+                println!("{}", HANGMAN_PICS[attempts]);
+                display_word(word, &guessed);
+                println!("Congratulations! The word was: {}", word);
+                break;
+            }
+        } else {
+            attempts += 1;
+            println!("Wrong guess!");
+            if attempts == max_attempts {
+                println!("{}", HANGMAN_PICS[attempts]);
+                println!("You lost! The word was: {}", word);
+                break;
+            }
+        }
+    }
+}
